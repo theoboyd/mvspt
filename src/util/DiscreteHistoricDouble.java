@@ -1,10 +1,13 @@
 package util;
 
-public abstract class DiscreteDouble {
-  private double value;
-  private double minimum;
-  private double maximum;
-  private double increment;
+import java.util.LinkedList;
+
+public abstract class DiscreteHistoricDouble {
+  private double             value;
+  private double             minimum;
+  private double             maximum;
+  private double             increment;
+  private LinkedList<Double> history;
 
   /**
    * Wrapper for the special discrete double that lambda should be. Allows for the one-time initialisation of lambda to
@@ -14,12 +17,19 @@ public abstract class DiscreteDouble {
    * @param maximum
    * @param increment
    * @param startValue
+   * @param history
    */
-  public DiscreteDouble(double minimum, double maximum, double increment, double startValue) {
+  public DiscreteHistoricDouble(double minimum, double maximum, double increment, double startValue) {
     this.minimum = minimum;
     this.maximum = maximum;
     this.increment = increment;
-    this.value = fixToDiscrete(startValue, minimum, maximum, increment);
+    value = fixToDiscrete(startValue, minimum, maximum, increment);
+    history = new LinkedList<Double>();
+    history.add(this.value);
+  }
+  
+  public LinkedList<Double> getHistory() {
+    return history;
   }
 
   public double getValue() {
@@ -28,10 +38,12 @@ public abstract class DiscreteDouble {
 
   public void incrementValue() {
     value = fixToDiscrete(value + increment, value, value + increment, increment);
+    history.add(value);
   }
 
   public void decrementValue() {
     value = fixToDiscrete(value - increment, value - increment, value, increment);
+    history.add(value);
   }
 
   /**
@@ -67,7 +79,7 @@ public abstract class DiscreteDouble {
     double output = 0;
 
     // First cap the value
-    input = fixToRange(input, min, max);
+    input = fixToRange(input, Math.max(minimum, min), Math.min(max, maximum));
 
     for (double i = min; i < max; i += step) {
       double currentMin = i;

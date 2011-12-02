@@ -3,7 +3,7 @@ package strategy;
 import java.util.LinkedList;
 import java.util.List;
 
-import util.DiscreteDouble;
+import util.DiscreteHistoricDouble;
 import util.GameSettings;
 import util.Response;
 import util.StrategyException;
@@ -16,8 +16,7 @@ public abstract class Strategy {
   /**
    * A decimal value for the social coefficient, in the range [0, 1]
    */
-  protected DiscreteDouble     lambda;
-  private List<DiscreteDouble> lambdaHistory;       // A history of lambda values for observation
+  protected DiscreteHistoricDouble     lambda;
   private int                  lambdaIsBehindBy = 1; // The amount behind that public lambda is at
 
   /**
@@ -25,15 +24,14 @@ public abstract class Strategy {
    */
   private List<List<Response>> history;
 
-  public double                socialScore      = 0;
-  public double                materialScore    = 0;
+  private double               socialScore      = 0;
+  private double               materialScore    = 0;
   private Strategy             opponent;
 
   public Strategy() {
-    socialScore = 0;
-    materialScore = 0;
+    setSocialScore(0);
+    setMaterialScore(0);
     history = new LinkedList<List<Response>>();
-    lambdaHistory = new LinkedList<DiscreteDouble>();
   }
 
   public void setOpponent(Strategy opponent) {
@@ -60,7 +58,7 @@ public abstract class Strategy {
 
   /**
    * Must return a cooperate or defect response optionally based on the history of previous plays; must update history
-   * with the last move played
+   * with the last move played.
    */
   public abstract Response respond();
 
@@ -69,9 +67,37 @@ public abstract class Strategy {
    */
   public void play() {
     Response r = respond();
+    if (r == Response.C && cooperationDisallowed()) {
+      r = Response.D;
+    } else
+      if (r == Response.D && defectionDisallowed()) {
+        r = Response.C;
+      }
     updateMyHistory(r);
     updateOpponentHistory(r);
     calculateScore();
+  }
+
+  /**
+   * To prevent undermining the concept of morality, defection is not permitted if they last cooperated and then
+   * increased their social coefficient.
+   * 
+   * @return
+   */
+  private boolean defectionDisallowed() {
+    return (getLastResponsePair().get(0) == Response.C && lambda.getValue() > lambda.getHistory()
+        .get(lambda.getHistory().size() - 1));
+  }
+
+  /**
+   * To prevent undermining the concept of morality, cooperation is not permitted if they last defected and then
+   * decreased their social coefficient.
+   * 
+   * @return
+   */
+  private boolean cooperationDisallowed() {
+    return (getLastResponsePair().get(0) == Response.D && lambda.getValue() < lambda.getHistory()
+        .get(lambda.getHistory().size() - 1));
   }
 
   private void calculateScore() {
@@ -81,23 +107,23 @@ public abstract class Strategy {
       // Cooperate, X
       if (lastOpponentResponse == Response.C) {
         // Cooperate, Cooperate
-        socialScore += lambda.getValue() * GameSettings.M;
-        materialScore += (1 - lambda.getValue()) * GameSettings.R;
+        setSocialScore(getSocialScore() + lambda.getValue() * GameSettings.M);
+        setMaterialScore(getMaterialScore() + (1 - lambda.getValue()) * GameSettings.R);
       } else {
         // Cooperate, Defect
-        socialScore += lambda.getValue() * GameSettings.M;
-        materialScore += (1 - lambda.getValue()) * GameSettings.S;
+        setSocialScore(getSocialScore() + lambda.getValue() * GameSettings.M);
+        setMaterialScore(getMaterialScore() + (1 - lambda.getValue()) * GameSettings.S);
       }
     } else {
       // Defect, X
       if (lastOpponentResponse == Response.C) {
         // Defect, Cooperate
-        socialScore += lambda.getValue() * GameSettings.Mp;
-        materialScore += (1 - lambda.getValue()) * GameSettings.T;
+        setSocialScore(getSocialScore() + lambda.getValue() * GameSettings.Mp);
+        setMaterialScore(getMaterialScore() + (1 - lambda.getValue()) * GameSettings.T);
       } else {
         // Defect, Defect
-        socialScore += lambda.getValue() * GameSettings.Mp;
-        materialScore += (1 - lambda.getValue()) * GameSettings.P;
+        setSocialScore(getSocialScore() + lambda.getValue() * GameSettings.Mp);
+        setMaterialScore(getMaterialScore() + (1 - lambda.getValue()) * GameSettings.P);
       }
     }
   }
@@ -166,12 +192,28 @@ public abstract class Strategy {
    * @throws StrategyException
    */
   public double getPublicLambda() throws StrategyException {
-    double lambda = 0.5;
+    double publicLambda = 0.5;
     try {
-      lambda = lambdaHistory.get(lambdaHistory.size() - 1 - lambdaIsBehindBy).getValue();
+      publicLambda = lambda.getHistory().get(lambda.getHistory().size() - 1 - lambdaIsBehindBy);
     } catch (Exception e) {
-      // Not enough items in history to return a lambda
+      System.err.println("Not enough items in history to return a lambda.");
     }
-    return lambda;
+    return publicLambda;
+  }
+
+  public double getMaterialScore() {
+    return materialScore;
+  }
+
+  private void setMaterialScore(double materialScore) {
+    this.materialScore = materialScore;
+  }
+
+  public double getSocialScore() {
+    return socialScore;
+  }
+
+  private void setSocialScore(double socialScore) {
+    this.socialScore = socialScore;
   }
 }

@@ -29,10 +29,16 @@ public class JavaExtensions {
    * @param class1
    * @return
    */
-  public static List<String> itemsIn(Class<?> class1) {
+  public static List<String> fieldsIn(Class<?> class1) {
     List<String> strings = new LinkedList<String>();
     for (Field f : class1.getDeclaredFields()) {
-      strings.add(f.getName());
+      try {
+        strings.add(f.getName() + " = " + f.get(null));
+      } catch (IllegalArgumentException e) {
+        e.printStackTrace();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      }
     }
     return strings;
   }

@@ -32,7 +32,7 @@ public class StrategyCollection {
   public Strategy getSocialWinner() {
     Strategy winner = strategies.get(0);
     for (Strategy s : strategies) {
-      if (s.socialScore > winner.socialScore) {
+      if (s.getSocialScore() > winner.getSocialScore()) {
         winner = s;
       }
     }
@@ -42,7 +42,7 @@ public class StrategyCollection {
   public Strategy getMaterialWinner() {
     Strategy winner = strategies.get(0);
     for (Strategy s : strategies) {
-      if (s.materialScore > winner.materialScore) {
+      if (s.getMaterialScore() > winner.getMaterialScore()) {
         winner = s;
       }
     }

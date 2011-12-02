@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.TextArea;
+import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
@@ -33,8 +34,8 @@ public class AppletGUI extends JFrame implements Runnable {
   public boolean             running          = false;
   private StrategyCollection sc;
   private List<Strategy>     strategies;
-  private List<String>       output           = new LinkedList<String>();              // Displayable output
-  private int                speed            = 200;                                   // Speed of iteration in ms
+  private List<String>       output           = new LinkedList<String>();             // Displayable output
+  private int                speed            = 200;                                  // Speed of iteration in ms
 
   public AppletGUI() {
     // Frame
@@ -57,33 +58,41 @@ public class AppletGUI extends JFrame implements Runnable {
     stop.setText("Stop");
     stop.addMouseListener(bc);
 
+    JButton edit = new JButton();
+    edit.setText("Edit");
+    edit.addMouseListener(bc);
+
     // Containers
-    Container topContainer = new JPanel();
-    topContainer.add(mainLabel, BorderLayout.CENTER);
-    topContainer.add(secondaryLabel, BorderLayout.CENTER);
-
     Container controlContainer = new JPanel();
-
     controlContainer.add(step);
     controlContainer.add(run);
     controlContainer.add(stop);
 
-    Container bottomContainer = new JPanel(new GridLayout(1, 1));
-    bottomContainer.add(mainTextArea, BorderLayout.CENTER);
+    Container mainContainer = new JPanel(new GridLayout(1, 1));
+    mainContainer.add(mainTextArea, BorderLayout.CENTER);
+
+    Container statusContainer = new JPanel();
+    statusContainer.add(mainLabel, BorderLayout.CENTER);
+    statusContainer.add(secondaryLabel, BorderLayout.CENTER);
+    statusContainer.add(edit, BorderLayout.EAST);
 
     // Labels
     sc = new StrategyCollection();
     strategies = sc.getStrategies();
     mainLabel.setText("Strategies loaded: " + strategies.size() + ".");
-    secondaryLabel.setText(JavaExtensions.join(JavaExtensions.itemsIn(GameSettings.class), " "));
+    updateSecondaryLabel();
     mainTextArea.setEditable(false);
 
     // Display and add containers
     add(controlContainer, BorderLayout.NORTH);
-    add(bottomContainer, BorderLayout.CENTER);
-    add(topContainer, BorderLayout.SOUTH);
-    pack();
+    add(mainContainer, BorderLayout.CENTER);
+    add(statusContainer, BorderLayout.SOUTH);
+    // pack();
     setVisible(true);
+  }
+
+  private void updateSecondaryLabel() {
+    secondaryLabel.setText(JavaExtensions.join(JavaExtensions.fieldsIn(GameSettings.class), " "));
   }
 
   public void run() {
@@ -111,11 +120,10 @@ public class AppletGUI extends JFrame implements Runnable {
         System.out.println(opponent.getLastResponsePair());
 
         try {
-          addOutput(strategy.name() + " [Author: " + strategy.author() + ", Social: " + strategy.socialScore + " "
-              + GameSettings.SOCIAL_CURRENCY + " (public coeff: " + strategy.getPublicLambda() + "), Material: "
-              + strategy.materialScore + " " + GameSettings.MATERIAL_CURRENCY + "] played "
-              + strategy.getLastResponsePair().get(0) + " against " + opponent.name() + " (who played "
-              + strategy.getLastResponsePair().get(1) + ")");
+          addOutput(strategy.name() + " [Author: " + strategy.author() + ", Social: " + strategy.getSocialScore()
+              + " points (public coeff: " + strategy.getPublicLambda() + "), Material: " + strategy.getMaterialScore()
+              + " points] played " + strategy.getLastResponsePair().get(0) + " against " + opponent.name()
+              + " (who played " + strategy.getLastResponsePair().get(1) + ")");
         } catch (StrategyException e) {
           addOutput("Invalid strategy: " + strategy.name() + " by " + strategy.author()
               + ". Please check. Error message was: " + e.getMessage());
@@ -131,8 +139,8 @@ public class AppletGUI extends JFrame implements Runnable {
   private void updateWinnerDisplay() {
     Strategy socialWinner = sc.getSocialWinner();
     Strategy materialWinner = sc.getMaterialWinner();
-    mainLabel.setText("Social winner: " + socialWinner.name() + "(" + socialWinner.materialScore
-        + "points), material winner: " + materialWinner.name() + "(" + materialWinner.materialScore + "points)");
+    mainLabel.setText("Social winner: " + socialWinner.name() + "(" + socialWinner.getSocialScore()
+        + "points), material winner: " + materialWinner.name() + "(" + materialWinner.getMaterialScore() + "points)");
   }
 
   public void runSteps() {
@@ -154,6 +162,40 @@ public class AppletGUI extends JFrame implements Runnable {
     if (result == JOptionPane.YES_OPTION) {
       dispose(); // Destroy window
       System.exit(0); // Exit (no error)
+    }
+  }
+
+  public void edit() {
+    boolean invalidValue = false;
+    for (Field f : GameSettings.class.getDeclaredFields()) {
+      try {
+        double x = Double.parseDouble(JOptionPane.showInputDialog(
+            "Please enter the new value for " + f.getName() + ":", f.get(null)));
+        f.set(null, x);
+      } catch (IllegalArgumentException e) {
+        invalidValue = true;
+        break;
+      } catch (IllegalAccessException e) {
+        invalidValue = true;
+        break;
+      }
+      if (!((GameSettings.M > GameSettings.Mp) && (GameSettings.M > (GameSettings.R + GameSettings.P) / 2)
+          && (GameSettings.T > GameSettings.R) && (GameSettings.R > GameSettings.P)
+          && (GameSettings.P > GameSettings.S) && (GameSettings.R > (GameSettings.T + GameSettings.S) / 2))
+          && (GameSettings.MIN_LAMBDA >= 0)
+          && (GameSettings.MIN_LAMBDA < GameSettings.MAX_LAMBDA)
+          && (GameSettings.MAX_LAMBDA > GameSettings.MIN_LAMBDA)
+          && (GameSettings.MAX_LAMBDA <= 1)
+          && (GameSettings.INCR_LAMBDA > 0) && (GameSettings.INCR_LAMBDA < GameSettings.MAX_LAMBDA)) {
+        invalidValue = true;
+      }
+    }
+    updateSecondaryLabel();
+    if (invalidValue) {
+      JOptionPane.showMessageDialog(this, "Invalid value encountered. Please remember these rules:\n"
+          + "M > M'\nM > (R+P)/2\nT > R > P > S\nR > (T+S)/2)\n"
+          + "0 <= MIN_LAMBDA < MAX_LAMBDA <= 1\n0 < INCR_LAMBDA < MAX_LAMBDA", "MVSPT", JOptionPane.WARNING_MESSAGE);
+      edit();
     }
   }
 

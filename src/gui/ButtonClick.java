@@ -36,7 +36,9 @@ class ButtonClick implements MouseListener {
 			  gui.running = false;
 			} else if (b.getText() == "Stop") {
 				gui.stop();
-			}
+			} else if (b.getText() == "Edit") {
+        gui.edit();
+      }
 		}
 	}
 	
