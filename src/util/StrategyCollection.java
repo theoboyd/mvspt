@@ -11,8 +11,6 @@ import strategy.TestStrategy;
 
 /**
  * Wrapper collection for all valid, supported strategies
- * 
- * @author Theo
  */
 public class StrategyCollection {
   List<Strategy> strategies;

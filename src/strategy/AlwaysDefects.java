@@ -5,8 +5,6 @@ import util.Response;
 
 /**
  * Always returns a defect response
- * 
- * @author Theo
  */
 public class AlwaysDefects extends Strategy {
 

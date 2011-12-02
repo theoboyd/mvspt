@@ -5,8 +5,6 @@ import util.Response;
 
 /**
  * Always returns a cooperate response
- * 
- * @author Theo
  */
 public class AlwaysCooperates extends Strategy {
 
@@ -14,7 +12,7 @@ public class AlwaysCooperates extends Strategy {
     super();
     lambda = new Lambda(1.0);
   }
-  
+
   @Override
   public Response respond() {
     return Response.C;
