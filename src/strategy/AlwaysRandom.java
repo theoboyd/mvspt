@@ -9,7 +9,6 @@ import util.Response;
  * Randomly chooses between cooperate and defect, ignoring the history
  */
 public class AlwaysRandom extends Strategy {
-  static Random rand = new Random();
 
   public AlwaysRandom() {
     super();

@@ -2,6 +2,7 @@ package strategy;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import util.DiscreteHistoricDouble;
 import util.GameSettings;
@@ -16,19 +17,30 @@ public abstract class Strategy {
   /**
    * A decimal value for the social coefficient, in the range [0, 1]
    */
-  protected DiscreteHistoricDouble     lambda;
-  private int                  lambdaIsBehindBy = 1; // The amount behind that public lambda is at
+  protected DiscreteHistoricDouble lambda;
+  private int                      lambdaIsBehindBy = 1;           // The amount behind that public lambda is at
 
+  /**
+   * A random number generator for use with probabilistic strategies
+   */
+  protected static Random          rand;
+
+  /**
+   * A running count of the number of rounds played by this strategy
+   */
+  private int                      roundsPlayed;
   /**
    * The history parameter is a list of [My play, Opponent's response] pairs in a map.
    */
-  private List<List<Response>> history;
+  private List<List<Response>>     history;
 
-  private double               socialScore      = 0;
-  private double               materialScore    = 0;
-  private Strategy             opponent;
+  private double                   socialScore      = 0;
+  private double                   materialScore    = 0;
+  private Strategy                 opponent;
 
   public Strategy() {
+    rand = new Random();
+    roundsPlayed = 0;
     setSocialScore(0);
     setMaterialScore(0);
     history = new LinkedList<List<Response>>();
@@ -68,14 +80,17 @@ public abstract class Strategy {
   public void play() {
     Response r = respond();
     if (r == Response.C && cooperationDisallowed()) {
+      System.out.println("Cooperation was not allowed and the strategy was forced to defect.");
       r = Response.D;
     } else
       if (r == Response.D && defectionDisallowed()) {
+        System.out.println("Defection was not allowed and the strategy was forced to cooperate.");
         r = Response.C;
       }
     updateMyHistory(r);
     updateOpponentHistory(r);
     calculateScore();
+    roundsPlayed++;
   }
 
   /**
@@ -85,8 +100,8 @@ public abstract class Strategy {
    * @return
    */
   private boolean defectionDisallowed() {
-    return (getLastResponsePair().get(0) == Response.C && lambda.getValue() > lambda.getHistory()
-        .get(lambda.getHistory().size() - 1));
+    return (getLastResponsePair().get(0) == Response.C && lambda.getValue() > lambda.getHistory().get(
+        lambda.getHistory().size() - 1));
   }
 
   /**
@@ -96,8 +111,8 @@ public abstract class Strategy {
    * @return
    */
   private boolean cooperationDisallowed() {
-    return (getLastResponsePair().get(0) == Response.D && lambda.getValue() < lambda.getHistory()
-        .get(lambda.getHistory().size() - 1));
+    return (getLastResponsePair().get(0) == Response.D && lambda.getValue() < lambda.getHistory().get(
+        lambda.getHistory().size() - 1));
   }
 
   private void calculateScore() {
@@ -215,5 +230,9 @@ public abstract class Strategy {
 
   private void setSocialScore(double socialScore) {
     this.socialScore = socialScore;
+  }
+
+  public int getRoundsPlayed() {
+    return roundsPlayed;
   }
 }
