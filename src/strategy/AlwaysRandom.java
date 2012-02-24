@@ -19,6 +19,7 @@ public class AlwaysRandom extends Strategy {
   public Response respond() {
     Random rand = new Random();
     double random = rand.nextDouble();
+    lambda.noChange();
     return (random < 0.5 ? Response.C : Response.D);
   }
   

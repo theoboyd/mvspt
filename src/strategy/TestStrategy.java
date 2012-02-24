@@ -12,12 +12,13 @@ public class TestStrategy extends Strategy {
 
   @Override
   public Response respond() {
+    lambda.noChange();
     return Response.C;
   }
 
   @Override
   public String name() {
-    return "Test Strategy";
+    return "Basic Strategy"; // Test Strategy
   }
 
   @Override

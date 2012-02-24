@@ -1,6 +1,7 @@
 package strategy;
 
 import util.Lambda;
+import util.NashEquilibrium;
 import util.Response;
 
 public class NonsensePeople extends Strategy {
@@ -12,12 +13,8 @@ public class NonsensePeople extends Strategy {
 
   @Override
   public Response respond() {
-    if (getRoundsPlayed() == 0) {
-      // First round
-      return Response.C;
-    } else {
-      return (rand.nextDouble() < 0.5 ? Response.C : Response.D);
-    }
+    lambda.noChange();
+    return NashEquilibrium.getEquilibrium(lambda);
   }
 
   @Override

@@ -45,6 +45,10 @@ public abstract class DiscreteHistoricDouble {
     value = fixToDiscrete(value - increment, value - increment, value, increment);
     history.add(value);
   }
+  
+  public void noChange() {
+    history.add(value);
+  }
 
   /**
    * Fix input to the closed interval [min, max]

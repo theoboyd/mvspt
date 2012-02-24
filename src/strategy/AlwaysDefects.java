@@ -15,6 +15,7 @@ public class AlwaysDefects extends Strategy {
 
   @Override
   public Response respond() {
+    lambda.noChange();
     return Response.D;
   }
 

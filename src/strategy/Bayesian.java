@@ -1,6 +1,7 @@
 package strategy;
 
 import util.Lambda;
+import util.NashEquilibrium;
 import util.Response;
 
 public class Bayesian extends Strategy {
@@ -15,10 +16,16 @@ public class Bayesian extends Strategy {
   public Response respond() {
     if (getRoundsPlayed() == 0) {
       // First round
-      return Response.C;
+      lambda.noChange();
     } else {
-      return Response.D;
+      double predictedOppLambda = rand.nextGaussian() + 0.5;
+      if (predictedOppLambda < lambda.getValue()) {
+        lambda.decrementValue();
+      } else if (predictedOppLambda > lambda.getValue()) {
+        lambda.incrementValue();
+      }
     }
+    return NashEquilibrium.getEquilibrium(lambda);
   }
 
   @Override

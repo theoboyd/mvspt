@@ -1,5 +1,7 @@
 package strategy;
 
+import gui.AppletGUI;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -18,7 +20,7 @@ public abstract class Strategy {
    * A decimal value for the social coefficient, in the range [0, 1]
    */
   protected DiscreteHistoricDouble lambda;
-  private int                      lambdaIsBehindBy = 1;           // The amount behind that public lambda is at
+  private int                      lambdaIsBehindBy = 1; // The amount behind that public lambda is at
 
   /**
    * A random number generator for use with probabilistic strategies
@@ -76,20 +78,22 @@ public abstract class Strategy {
 
   /**
    * Safe wrapper for a complete play
+   * 
+   * @throws StrategyException
    */
-  public void play() {
+  public void play() throws StrategyException {
     Response r = respond();
     if (r == Response.C && cooperationDisallowed()) {
-      System.out.println("Cooperation was not allowed and the strategy was forced to defect.");
-      r = Response.D;
-    } else
-      if (r == Response.D && defectionDisallowed()) {
-        System.out.println("Defection was not allowed and the strategy was forced to cooperate.");
-        r = Response.C;
-      }
+      System.err.println("Cooperation was not allowed and the strategy was forced to defect.");
+      throw new StrategyException(
+          "Invalid strategy: attempted to cooperate after having defected and then reduced lambda.");
+    } else if (r == Response.D && defectionDisallowed()) {
+      System.err.println("Defection was not allowed and the strategy was forced to cooperate.");
+      throw new StrategyException(
+          "Invalid strategy: attempted to defect after having cooprated and then increased lambda.");
+    }
     updateMyHistory(r);
     updateOpponentHistory(r);
-    calculateScore();
     roundsPlayed++;
   }
 
@@ -100,8 +104,14 @@ public abstract class Strategy {
    * @return
    */
   private boolean defectionDisallowed() {
-    return (getLastResponsePair().get(0) == Response.C && lambda.getValue() > lambda.getHistory().get(
-        lambda.getHistory().size() - 1));
+    boolean disallowed = false;
+    try {
+      disallowed = (getLastResponsePair().get(0) == Response.C && lambda.getValue() > lambda.getHistory().get(
+          lambda.getHistory().size() - 1));
+    } catch (Exception e) {
+      // Could not get history item, assuming benefit of doubt
+    }
+    return disallowed;
   }
 
   /**
@@ -111,11 +121,17 @@ public abstract class Strategy {
    * @return
    */
   private boolean cooperationDisallowed() {
-    return (getLastResponsePair().get(0) == Response.D && lambda.getValue() < lambda.getHistory().get(
-        lambda.getHistory().size() - 1));
+    boolean disallowed = false;
+    try {
+      disallowed = (getLastResponsePair().get(0) == Response.D && lambda.getValue() < lambda.getHistory().get(
+          lambda.getHistory().size() - 1));
+    } catch (Exception e) {
+      // Could not get history item, assuming benefit of doubt
+    }
+    return disallowed;
   }
 
-  private void calculateScore() {
+  public void calculateScore() {
     Response lastResponse = getLastResponsePair().get(0);
     Response lastOpponentResponse = getLastResponsePair().get(1);
     if (lastResponse == Response.C) {
@@ -158,8 +174,17 @@ public abstract class Strategy {
    */
   public List<Response> getLastResponsePair() {
     // Indexes into the last element in the history
-    List<Response> lastResponsePair;
-    lastResponsePair = history.get(history.size() - 1);
+    List<Response> lastResponsePair = new LinkedList<Response>();
+    try {
+      lastResponsePair = history.get(history.size() - 1);
+    } catch (Exception e) {
+      if (roundsPlayed == 0) {
+        if (AppletGUI.verboseMode) System.out
+            .println("Didn't get last response pair history element as this is the first round.");
+      } else {
+        System.err.println("Failed to get last response pair history element.");
+      }
+    }
     return lastResponsePair;
   }
 
@@ -204,14 +229,18 @@ public abstract class Strategy {
    * active lambda of the strategy is private
    * 
    * @return
-   * @throws StrategyException
    */
-  public double getPublicLambda() throws StrategyException {
-    double publicLambda = 0.5;
+  public double getPublicLambda() {
+    double publicLambda = -999; // Undefined
     try {
       publicLambda = lambda.getHistory().get(lambda.getHistory().size() - 1 - lambdaIsBehindBy);
     } catch (Exception e) {
-      System.err.println("Not enough items in history to return a lambda.");
+      if (roundsPlayed <= lambdaIsBehindBy) {
+        if (AppletGUI.verboseMode) System.out.println("Couldn't retrieve lambda as this is the first (+"
+            + lambdaIsBehindBy + ") round.");
+      } else {
+        System.err.println("Not enough items in history to return a lambda.");
+      }
     }
     return publicLambda;
   }

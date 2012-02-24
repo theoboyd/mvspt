@@ -4,9 +4,9 @@ import util.Lambda;
 import util.NashEquilibrium;
 import util.Response;
 
-public class PositivePeople extends Strategy {
+public class NashTitForTat extends Strategy {
 
-  public PositivePeople() {
+  public NashTitForTat() {
     super();
     lambda = new Lambda(rand.nextDouble());
   }
@@ -16,24 +16,28 @@ public class PositivePeople extends Strategy {
     if (getRoundsPlayed() == 0) {
       // First round
       lambda.noChange();
+      return Response.C;
     } else {
+      // Not the first round
       if (getLastResponsePair().get(1) == Response.C) {
-        // Opponent last cooperated
+        // If the opponent last cooperated
         lambda.incrementValue();
       } else {
-        lambda.noChange();
+        // The opponent last defected
+        lambda.decrementValue();
       }
+      return NashEquilibrium.getEquilibrium(lambda);
     }
-    return NashEquilibrium.getEquilibrium(lambda);
   }
 
   @Override
   public String name() {
-    return "Positive People";
+    return "Nash Tit For Tat";
   }
 
   @Override
   public String author() {
     return "Ali Ghoroghi";
   }
+
 }

@@ -8,7 +8,7 @@ import java.util.List;
 public class JavaExtensions {
 
   /**
-   * Joiuns the list of strings together into a single string with the provided delimiter between them
+   * Joins the list of strings together into a single string with the provided delimiter between them
    * 
    * @param s
    * @param delimiter

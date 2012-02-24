@@ -1,6 +1,7 @@
 package strategy;
 
 import util.Lambda;
+import util.NashEquilibrium;
 import util.Response;
 
 public class NegativePeople extends Strategy {
@@ -14,14 +15,16 @@ public class NegativePeople extends Strategy {
   public Response respond() {
     if (getRoundsPlayed() == 0) {
       // First round
-      return Response.C;
+      lambda.noChange();
     } else {
       if (getLastResponsePair().get(1) == Response.D) {
         // Opponent last defected
         lambda.decrementValue();
+      } else {
+        lambda.noChange();
       }
-      return Response.C;
     }
+    return NashEquilibrium.getEquilibrium(lambda);
   }
 
   @Override
