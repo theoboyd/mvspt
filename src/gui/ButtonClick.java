@@ -8,9 +8,9 @@ import javax.swing.JPanel;
 
 class ButtonClick implements MouseListener {
 
-  private AppletGUI gui;
+  private MVSPT gui;
 
-  ButtonClick(AppletGUI gui) {
+  ButtonClick(MVSPT gui) {
     this.gui = gui;
   }
 

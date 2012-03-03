@@ -18,7 +18,6 @@ import strategy.NonsensePeople;
 import strategy.PositivePeople;
 import strategy.SocialTitForTat;
 import strategy.Strategy;
-import strategy.TestStrategy;
 import strategy.TitForTat;
 
 /**

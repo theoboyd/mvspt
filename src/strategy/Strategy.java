@@ -1,7 +1,5 @@
 package strategy;
 
-import gui.AppletGUI;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -179,8 +177,7 @@ public abstract class Strategy {
       lastResponsePair = history.get(history.size() - 1);
     } catch (Exception e) {
       if (roundsPlayed == 0) {
-        if (AppletGUI.verboseMode) System.out
-            .println("Didn't get last response pair history element as this is the first round.");
+        //System.out.println("(Couldn't get last response pair history element as this is the first round.)");
       } else {
         System.err.println("Failed to get last response pair history element.");
       }
@@ -236,8 +233,7 @@ public abstract class Strategy {
       publicLambda = lambda.getHistory().get(lambda.getHistory().size() - 1 - lambdaIsBehindBy);
     } catch (Exception e) {
       if (roundsPlayed <= lambdaIsBehindBy) {
-        if (AppletGUI.verboseMode) System.out.println("Couldn't retrieve lambda as this is the first (+"
-            + lambdaIsBehindBy + ") round.");
+        System.out.println("(Couldn't retrieve lambda as this is the first (+" + lambdaIsBehindBy + ") round.)");
       } else {
         System.err.println("Not enough items in history to return a lambda.");
       }

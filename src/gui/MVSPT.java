@@ -27,96 +27,38 @@ import util.JavaExtensions;
 import util.StrategyCollection;
 import util.StrategyException;
 
-public class AppletGUI extends JFrame implements Runnable {
+public class MVSPT extends JFrame implements Runnable {
 
   private static final long               serialVersionUID = 4794145998591358565L;
   private int                             width            = 1440;
   private int                             height           = 90;
-  JLabel                                  mainLabel        = new JLabel("", SwingConstants.CENTER);
-  JLabel                                  secondaryLabel   = new JLabel("", SwingConstants.CENTER);
-  TextArea                                mainTextArea     = new TextArea();
   public boolean                          running          = false;
   private StrategyCollection              sc;
   private List<Class<? extends Strategy>> strategies;
   private List<Score>                     scores;
-  private List<String>                    output           = new LinkedList<String>();             // Displayable
-  private int                             speed            = 200;                                  // Iter. speed in ms
-  private int                             allRunsMade      = 0;                                    // Full running tot.
-  private boolean                         fastMode         = false;
-  public static boolean                   verboseMode      = false;                                // Print debug
+  private List<String>                    output           = new LinkedList<String>(); // Displayable
+  private int                             speed            = 200;                     // Iter. speed in ms
+  private int                             allRunsMade      = 0;                       // Full running tot.
+  private boolean                         guiMode          = false;
+  public boolean                          verboseMode      = false;                   // Print debug
 
-  public AppletGUI() {
-    // Frame
-    setName("Life");
-    setSize(width, height);
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // To terminate
+  public MVSPT(boolean guiMode, boolean verboseMode) {
+    this.guiMode = guiMode;
+    this.verboseMode = verboseMode;
+    initialise();
+    if (guiMode) {
+      startGUI();
+    }
+  }
 
-    // Buttons (other than cells)
-    ButtonClick bc = new ButtonClick(this);
-
-    JButton step = new JButton();
-    step.setText("Step");
-    step.addMouseListener(bc);
-    // step.setEnabled(false);
-
-    JButton run = new JButton();
-    run.setText("Run");
-    run.addMouseListener(bc);
-    // run.setEnabled(false);
-
-    JButton runTournament = new JButton();
-    runTournament.setText("Run Tournament");
-    runTournament.addMouseListener(bc);
-
-    JButton edit = new JButton();
-    edit.setText("Edit Variables");
-    edit.addMouseListener(bc);
-
-    JButton quit = new JButton();
-    quit.setText("Quit");
-    quit.addMouseListener(bc);
-
-    // Containers
-    Container controlContainer = new JPanel();
-    controlContainer.add(step);
-    controlContainer.add(run);
-    controlContainer.add(runTournament);
-    controlContainer.add(edit);
-    controlContainer.add(quit);
-
-    Container mainContainer = new JPanel(new GridLayout(1, 1));
-    mainContainer.add(mainTextArea, BorderLayout.CENTER);
-
-    Container statusContainer = new JPanel();
-    statusContainer.add(mainLabel, BorderLayout.CENTER);
-    statusContainer.add(secondaryLabel, BorderLayout.CENTER);
-
-    // Labels
+  private void initialise() {
     sc = new StrategyCollection();
     strategies = sc.getStrategies();
     scores = new LinkedList<Score>();
-    mainLabel.setText("Strategies loaded: " + strategies.size() + ".");
-    updateSecondaryLabel();
-    mainTextArea.setEditable(false);
-
-    // Display and add containers
-    add(controlContainer, BorderLayout.NORTH);
-    add(mainContainer, BorderLayout.CENTER);
-    add(statusContainer, BorderLayout.SOUTH);
-    // pack();
-    setVisible(true);
-  }
-
-  private void updateSecondaryLabel() {
-    secondaryLabel.setText(JavaExtensions.join(JavaExtensions.fieldsIn(GameSettings.class), " "));
-  }
-
-  public void run() {
-    setVisible(true);
   }
 
   /**
-   * Executes one step of the tournament
+   * Executes one complete tournament
    */
   public void tournament() {
     scores.clear();
@@ -157,10 +99,10 @@ public class AppletGUI extends JFrame implements Runnable {
           // sj.runsMade++;
 
           if (verboseMode) {
-            System.out.println(strategy.name() + " vs " + opponent.name());
-            // System.out.println(strategy.getLastResponsePair());
-            System.out.println(strategy.getLastResponsePair());
-            System.out.println(opponent.getLastResponsePair());
+            addOutput(strategy.name() + " vs " + opponent.name());
+            // addOutput(strategy.getLastResponsePair());
+            addOutput(strategy.getLastResponsePair().toString());
+            addOutput(opponent.getLastResponsePair().toString());
             try {
               addOutput(strategy.name() + " [Author: " + strategy.author() + ", Social: " + strategy.getSocialScore()
                   + " points (public coeff: " + strategy.getPublicLambda() + "), Material: "
@@ -170,7 +112,7 @@ public class AppletGUI extends JFrame implements Runnable {
               addOutput("Invalid strategy: " + strategy.name() + " by " + strategy.author()
                   + ". Please check. Error message was: " + e.getMessage());
             }
-            System.out.println("");
+            addOutput("");
           }
 
         }
@@ -182,7 +124,6 @@ public class AppletGUI extends JFrame implements Runnable {
         // sj.socialScore = opponent.getSocialScore();
         scores.add(si);
         // scores.add(sj);
-
       }
     }
   }
@@ -195,20 +136,18 @@ public class AppletGUI extends JFrame implements Runnable {
         + "points), material winner: " + materialWinner.name + "(" + materialWinner.materialScore
         + "points), overall winner: " + overallWinner.name + "(" + StrategyCollection.overallScore(overallWinner)
         + "points)";
-    if (!fastMode) mainLabel.setText(winners);
-    System.out.println(winners);
+    if (guiMode) ((JLabel) JavaExtensions.getComponentById(this, "mainLabel")).setText(winners);
+    addOutput(winners);
   }
 
   public void runTournament() {
-    fastMode = true;
     tournament();
     printSummary();
     allRunsMade = 0;
-    fastMode = false;
   }
 
   private void printSummary() {
-    System.out.println(allRunsMade + " runs made, with each round consisting of " + scores.get(0).runsMade + " games.");
+    addOutput(allRunsMade + " runs made, with each round consisting of " + scores.get(0).runsMade + " games.");
     DecimalFormat df = new DecimalFormat("0.00");
     List<Score> readScores = new LinkedList<Score>();
     readScores.addAll(scores);
@@ -245,22 +184,108 @@ public class AppletGUI extends JFrame implements Runnable {
           item.getValue().materialScore, item.getValue().socialScore));
     }
 
-    System.out.println("=== Name, Author, (Avg.) Ending Lambda, Material Score, Social Score, Overall Score ===");
+    addOutput("=== Name, Author, (Avg.) Ending Lambda, Material Score, Social Score, Overall Score ===");
     if (verboseMode) {
-      System.out.println("=== Individual runs ===");
+      addOutput("=== Individual runs ===");
       for (Score s : scores) {
-        System.out.println(s.name + " (vs. " + s.opponentName + ") & " + s.author + " & " + df.format(s.lambda) + " & "
+        addOutput(s.name + " (vs. " + s.opponentName + ") & " + s.author + " & " + df.format(s.lambda) + " & "
             + df.format(s.materialScore) + " & " + df.format(s.socialScore) + " & "
             + df.format(StrategyCollection.overallScore(s)) + " \\\\ \\hline");
       }
     }
-    System.out.println("=== Totals: ===");
+    addOutput("=== Totals: ===");
     for (Score s : uniqueScores) {
-      System.out.println(s.name + " & " + s.author + " & " + df.format(s.lambda) + " & " + df.format(s.materialScore)
-          + " & " + df.format(s.socialScore) + " & " + df.format(StrategyCollection.overallScore(s)) + " \\\\ \\hline");
+      addOutput(s.name + " & " + s.author + " & " + df.format(s.lambda) + " & " + df.format(s.materialScore) + " & "
+          + df.format(s.socialScore) + " & " + df.format(StrategyCollection.overallScore(s)) + " \\\\ \\hline");
     }
-    System.out.println("=== Winners: ===");
+    addOutput("=== Winners: ===");
     updateWinnerDisplay();
+  }
+
+  private void addOutput(String line) {
+    if (guiMode) {
+      output.add(line);
+      ((JLabel) JavaExtensions.getComponentById(this, "mainTextArea")).setText(JavaExtensions.join(output, "\n"));
+    } else {
+      System.out.println(line);
+    }
+  }
+
+  /*
+   * GUI-specific code follows only
+   */
+
+  public void startGUI() {
+    // Frame
+    setName("Life");
+    setSize(width, height);
+    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // To terminate
+
+    // Buttons (other than cells)
+    ButtonClick bc = new ButtonClick(this);
+
+    JButton step = new JButton();
+    step.setText("Step");
+    step.addMouseListener(bc);
+
+    JButton run = new JButton();
+    run.setText("Run");
+    run.addMouseListener(bc);
+
+    JButton runTournament = new JButton();
+    runTournament.setText("Run Tournament");
+    runTournament.addMouseListener(bc);
+
+    JButton edit = new JButton();
+    edit.setText("Edit Variables");
+    edit.addMouseListener(bc);
+
+    JButton quit = new JButton();
+    quit.setText("Quit");
+    quit.addMouseListener(bc);
+
+    // Containers
+    Container controlContainer = new JPanel();
+    controlContainer.add(step);
+    controlContainer.add(run);
+    controlContainer.add(runTournament);
+    controlContainer.add(edit);
+    controlContainer.add(quit);
+
+    JLabel mainLabel = new JLabel("", SwingConstants.CENTER);
+    mainLabel.setName("mainLabel");
+    JLabel secondaryLabel = new JLabel("", SwingConstants.CENTER);
+    secondaryLabel.setName("secondaryLabel");
+    TextArea mainTextArea = new TextArea();
+    mainTextArea.setName("mainTextArea");
+
+    Container mainContainer = new JPanel(new GridLayout(1, 1));
+    mainContainer.add(mainTextArea, BorderLayout.CENTER);
+
+    Container statusContainer = new JPanel();
+    statusContainer.add(mainLabel, BorderLayout.CENTER);
+    statusContainer.add(secondaryLabel, BorderLayout.CENTER);
+
+    // Labels
+    mainLabel.setText("Strategies loaded: " + strategies.size() + ".");
+    refreshGameSettingsDisplay();
+    mainTextArea.setEditable(false);
+
+    // Display and add containers
+    add(controlContainer, BorderLayout.NORTH);
+    add(mainContainer, BorderLayout.CENTER);
+    add(statusContainer, BorderLayout.SOUTH);
+    // pack();
+    setVisible(true);
+  }
+
+  private void refreshGameSettingsDisplay() {
+    ((JLabel) JavaExtensions.getComponentById(this, "secondaryLabel")).setText(JavaExtensions.join(
+        JavaExtensions.fieldsIn(GameSettings.class), " "));
+  }
+
+  public void run() {
+    setVisible(true);
   }
 
   public void runSteps() {
@@ -322,17 +347,12 @@ public class AppletGUI extends JFrame implements Runnable {
         invalidValue = true;
       }
     }
-    updateSecondaryLabel();
+    refreshGameSettingsDisplay();
     if (invalidValue) {
       JOptionPane.showMessageDialog(this, "Invalid value encountered. Please remember these rules:\n"
           + "M > M'\nM > (R+P)/2\nT > R > P > S\nR > (T+S)/2\n"
           + "0 <= MIN_LAMBDA < MAX_LAMBDA <= 1\n0 < INCR_LAMBDA < MAX_LAMBDA", "MVSPT", JOptionPane.WARNING_MESSAGE);
       edit();
     }
-  }
-
-  private void addOutput(String line) {
-    output.add(line);
-    mainTextArea.setText(JavaExtensions.join(output, "\n"));
   }
 }

@@ -1,6 +1,9 @@
 package util;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,6 +26,10 @@ public class JavaExtensions {
     return buffer.toString();
   }
 
+  public static String join(String[] s, String delimiter) {
+    return join(Arrays.asList(s), delimiter);
+  }
+
   /**
    * Return string representations of the fields in the provided class
    * 
@@ -41,5 +48,19 @@ public class JavaExtensions {
       }
     }
     return strings;
+  }
+
+  public static Component getComponentById(Container container, String componentId) {
+    if (container.getComponents().length > 0) {
+      for (Component c : container.getComponents()) {
+        if (componentId.equals(c.getName())) {
+          return c;
+        }
+        if (c instanceof Container) {
+          return getComponentById((Container) c, componentId);
+        }
+      }
+    }
+    return null;
   }
 }
