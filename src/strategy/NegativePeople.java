@@ -34,6 +34,6 @@ public class NegativePeople extends Strategy {
 
   @Override
   public String author() {
-    return "Ali Ghoroghi";
+    return "In-house (Ali Ghoroghi)";
   }
 }

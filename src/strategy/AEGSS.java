@@ -35,7 +35,7 @@ public class AEGSS extends Strategy {
 
   @Override
   public String author() {
-    return "Georgios Sakellariou";
+    return "In-house (Georgios Sakellariou)";
   }
 
 }

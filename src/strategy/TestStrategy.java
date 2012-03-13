@@ -23,6 +23,6 @@ public class TestStrategy extends Strategy {
 
   @Override
   public String author() {
-    return "Theodore Boyd";
+    return "In-house (Theodore Boyd)";
   }
 }

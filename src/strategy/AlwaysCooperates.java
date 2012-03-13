@@ -26,6 +26,6 @@ public class AlwaysCooperates extends Strategy {
 
   @Override
   public String author() {
-    return "Theodore Boyd";
+    return "In-house (Theodore Boyd)";
   }
 }
