@@ -22,5 +22,5 @@ public class GameSettings {
   public static double MAX_LAMBDA  = 1.0;
   public static double INCR_LAMBDA = 0.2;
   public static double GAMMA       = 0.5; // Global social coefficient, societal social weighting
-  public static int    N           = 2; // Number of rounds in a game
+  public static int    N           = 200; // Number of rounds in a game
 }

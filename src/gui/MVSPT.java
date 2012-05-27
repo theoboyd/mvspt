@@ -29,22 +29,25 @@ import util.StrategyException;
 
 public class MVSPT extends JFrame implements Runnable {
 
-  private static final long               serialVersionUID = 4794145998591358565L;
-  private int                             width            = 1440;
-  private int                             height           = 90;
-  public boolean                          running          = false;
-  private StrategyCollection              sc;
+  private static final long serialVersionUID = 4794145998591358565L;
+  private int width = 1440;
+  private int height = 90;
+  public boolean running = false;
+  private StrategyCollection sc;
   private List<Class<? extends Strategy>> strategies;
-  private List<Score>                     scores;
-  private List<String>                    output           = new LinkedList<String>(); // Displayable
-  private int                             speed            = 200;                     // Iter. speed in ms
-  private int                             allRunsMade      = 0;                       // Full running tot.
-  private boolean                         guiMode          = false;
-  public boolean                          verboseMode      = false;                   // Print debug
+  private List<Score> scores;
+  private List<String> output = new LinkedList<String>(); // Displayable
+  private int speed = 200; // Iter. speed in ms
+  private int allRunsMade = 0; // Full running tot.
+  private boolean guiMode = false;
+  private boolean verboseMode = false; // Print debug
+  private boolean statsMode = false; // No printing
+  boolean latexMode = false; // Print results to LaTeX format (defaults to HTML table otherwise)
 
-  public MVSPT(boolean guiMode, boolean verboseMode) {
+  public MVSPT(boolean guiMode, boolean verboseMode, boolean statsMode, String statsFilePath) {
     this.guiMode = guiMode;
     this.verboseMode = verboseMode;
+    this.statsMode = statsMode;
     initialise();
     if (guiMode) {
       startGUI();
@@ -128,27 +131,16 @@ public class MVSPT extends JFrame implements Runnable {
     }
   }
 
-  private void updateWinnerDisplay() {
-    Score socialWinner = sc.getSocialWinner(scores);
-    Score materialWinner = sc.getMaterialWinner(scores);
-    Score overallWinner = sc.getOverallWinner(scores);
-    String winners = "Social winner: " + socialWinner.name + "(" + socialWinner.socialScore
-        + "points), material winner: " + materialWinner.name + "(" + materialWinner.materialScore
-        + "points), overall winner: " + overallWinner.name + "(" + StrategyCollection.overallScore(overallWinner)
-        + "points)";
-    if (guiMode) ((JLabel) JavaExtensions.getComponentById(this, "mainLabel")).setText(winners);
-    addOutput(winners);
-  }
-
-  public void runTournament() {
+  public String runTournament() {
     tournament();
-    printSummary();
+    String data = printSummary();
     allRunsMade = 0;
+    return data;
   }
 
-  private void printSummary() {
+  private String printSummary() {
     addOutput(allRunsMade + " runs made, with each round consisting of " + scores.get(0).runsMade + " games.");
-    DecimalFormat df = new DecimalFormat("0.00");
+    DecimalFormat df = new DecimalFormat("0.000");
     List<Score> readScores = new LinkedList<Score>();
     readScores.addAll(scores);
     List<Score> uniqueScores = new LinkedList<Score>();
@@ -185,24 +177,78 @@ public class MVSPT extends JFrame implements Runnable {
     }
 
     addOutput("=== Name, Author, (Avg.) Ending Lambda, Material Score, Social Score, Overall Score ===");
-    if (verboseMode) {
-      addOutput("=== Individual runs ===");
-      for (Score s : scores) {
-        addOutput(s.name + " (vs. " + s.opponentName + ") & " + s.author + " & " + df.format(s.lambda) + " & "
-            + df.format(s.materialScore) + " & " + df.format(s.socialScore) + " & "
-            + df.format(StrategyCollection.overallScore(s)) + " \\\\ \\hline");
+
+    String startTag = (latexMode ? "" : "<tr>\n<td>\n");
+    String sepTag = (latexMode ? " & " : "\n</td>\n<td>\n");
+    String endTag = (latexMode ? " \\\\ \\hline" : "\n</td>\n</tr>");
+
+    double maxMaterialScore = 0.0;
+    double maxSocialScore = 0.0;
+    double maxOverallScore = 0.0;
+    String bestMaterialStr = "";
+    String bestSocialStr = "";
+    String bestOverallStr = "";
+
+    for (Score s : uniqueScores) {
+      if (s.materialScore > maxMaterialScore) {
+        maxMaterialScore = s.materialScore;
+        bestMaterialStr = s.name;
+      }
+
+      if (s.socialScore > maxSocialScore) {
+        maxSocialScore = s.socialScore;
+        bestSocialStr = s.name;
+      }
+
+      double overallScore = StrategyCollection.overallScore(s);
+      if (overallScore > maxOverallScore) {
+        maxOverallScore = overallScore;
+        bestOverallStr = s.name;
       }
     }
+
+    // Scale the scores by a factor, to make them percentages of the winner
+    // Absolute scores should not be shown to participants so as not to reveal or hint at the number of rounds used
+    double displayFactorMaterial = (double) 1 / (double) maxMaterialScore;
+    double displayFactorSocial = (double) 1 / (double) maxSocialScore;
+    double displayFactorOverall = (double) 1 / (double) maxOverallScore;
+
+    if (verboseMode) {
+      // Raw scores
+      addOutput("=== Individual runs ===");
+      for (Score s : scores) {
+        addOutput(startTag + s.name + " (vs. " + s.opponentName + ")" + sepTag + s.author + sepTag
+            + df.format(s.lambda) + sepTag + df.format(s.materialScore) + sepTag + df.format(s.socialScore) + sepTag
+            + df.format(StrategyCollection.overallScore(s)) + endTag);
+      }
+    }
+
+    // Scaled (non-raw) totals, for output and display to participants
     addOutput("=== Totals: ===");
     for (Score s : uniqueScores) {
-      addOutput(s.name + " & " + s.author + " & " + df.format(s.lambda) + " & " + df.format(s.materialScore) + " & "
-          + df.format(s.socialScore) + " & " + df.format(StrategyCollection.overallScore(s)) + " \\\\ \\hline");
+      addOutput(startTag + s.name + sepTag + s.author + sepTag + df.format(s.lambda) + sepTag
+          + df.format(s.materialScore * displayFactorMaterial) + sepTag
+          + df.format(s.socialScore * displayFactorSocial) + sepTag
+          + df.format(StrategyCollection.overallScore(s) * displayFactorOverall) + endTag);
     }
+
+    // Raw scores
     addOutput("=== Winners: ===");
-    updateWinnerDisplay();
+    // Material name and score, social name and score, overall name and score, in that order
+    String winners = bestMaterialStr + "\t" + df.format(maxMaterialScore) + "\t"
+        + bestSocialStr + "\t" + df.format(maxSocialScore) + "\t"
+        + bestOverallStr + "\t" + df.format(maxOverallScore);
+    addOutput(winners);
+    
+    if (statsMode) {
+      return winners + "\n";
+    }
+
+    return null;
   }
 
   private void addOutput(String line) {
+    if (statsMode) return;
     if (guiMode) {
       output.add(line);
       ((JLabel) JavaExtensions.getComponentById(this, "mainTextArea")).setText(JavaExtensions.join(output, "\n"));

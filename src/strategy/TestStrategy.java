@@ -18,7 +18,7 @@ public class TestStrategy extends Strategy {
 
   @Override
   public String name() {
-    return "Basic Strategy"; // Test Strategy
+    return "Basic Strategy";
   }
 
   @Override

@@ -17,10 +17,10 @@ public class ExtendedTitForTat extends Strategy {
       // First or second round
       lambda.noChange();
       return Response.C;
-    } else if (getRoundsPlayed() % 10 < 4){
+    } else if (getRoundsPlayed() % 10 < 4) {
       lambda.incrementValue();
       return Response.C;
-    } else if (getRoundsPlayed() % 2 == 0){
+    } else if (getRoundsPlayed() % 2 == 0) {
       lambda.decrementValue();
       return Response.D;
     } else {

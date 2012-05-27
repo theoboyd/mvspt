@@ -18,25 +18,25 @@ public abstract class Strategy {
    * A decimal value for the social coefficient, in the range [0, 1]
    */
   protected DiscreteHistoricDouble lambda;
-  private int                      lambdaIsBehindBy = 1; // The amount behind that public lambda is at
+  private int lambdaIsBehindBy = 1; // The amount behind that public lambda is at
 
   /**
    * A random number generator for use with probabilistic strategies
    */
-  protected static Random          rand;
+  protected static Random rand;
 
   /**
    * A running count of the number of rounds played by this strategy
    */
-  private int                      roundsPlayed;
+  private int roundsPlayed;
   /**
    * The history parameter is a list of [My play, Opponent's response] pairs in a map.
    */
-  private List<List<Response>>     history;
+  private List<List<Response>> history;
 
-  private double                   socialScore      = 0;
-  private double                   materialScore    = 0;
-  private Strategy                 opponent;
+  private double socialScore = 0;
+  private double materialScore = 0;
+  private Strategy opponent;
 
   public Strategy() {
     rand = new Random();
