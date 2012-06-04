@@ -55,14 +55,14 @@ public abstract class Strategy {
   }
 
   /**
-   * Update's opponent's last move pair to include this strategy's last move
+   * Updates opponent's last move pair to include this strategy's last move
    */
   public void updateOpponentHistory(Response response) {
     opponent.setLastResponsePair(1, response);
   }
 
   /**
-   * Update's this strategy's last move pair
+   * Updates this strategy's last move pair
    */
   public void updateMyHistory(Response response) {
     setLastResponsePair(0, response);
