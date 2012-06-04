@@ -88,7 +88,7 @@ public abstract class Strategy {
     } else if (r == Response.D && defectionDisallowed()) {
       System.err.println("Defection was not allowed and the strategy was forced to cooperate.");
       throw new StrategyException(
-          "Invalid strategy: attempted to defect after having cooprated and then increased lambda.");
+          "Invalid strategy: attempted to defect after having cooperated and then increased lambda.");
     }
     updateMyHistory(r);
     updateOpponentHistory(r);
