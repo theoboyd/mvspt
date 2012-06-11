@@ -99,7 +99,7 @@ public abstract class Strategy {
    * To prevent undermining the concept of morality, defection is not permitted if they last cooperated and then
    * increased their social coefficient.
    * 
-   * @return
+   * @return disallowed
    */
   private boolean defectionDisallowed() {
     boolean disallowed = false;
@@ -116,7 +116,7 @@ public abstract class Strategy {
    * To prevent undermining the concept of morality, cooperation is not permitted if they last defected and then
    * decreased their social coefficient.
    * 
-   * @return
+   * @return disallowed
    */
   private boolean cooperationDisallowed() {
     boolean disallowed = false;
@@ -225,7 +225,7 @@ public abstract class Strategy {
    * Returns the last publicly available lambda. This is usually the one that was used for the last move. The current
    * active lambda of the strategy is private
    * 
-   * @return
+   * @return publicLambda
    */
   public double getPublicLambda() {
     double publicLambda = -999; // Undefined

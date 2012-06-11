@@ -24,6 +24,7 @@ import javax.swing.SwingConstants;
 import strategy.Strategy;
 import util.GameSettings;
 import util.JavaExtensions;
+import util.ResultRow;
 import util.StrategyCollection;
 import util.StrategyException;
 
@@ -34,20 +35,22 @@ public class MVSPT extends JFrame implements Runnable {
   private int height = 90;
   public boolean running = false;
   private StrategyCollection sc;
-  private List<Class<? extends Strategy>> strategies;
+  List<Class<? extends Strategy>> strategies;
   private List<Score> scores;
   private List<String> output = new LinkedList<String>(); // Displayable
-  private int speed = 200; // Iter. speed in ms
-  private int allRunsMade = 0; // Full running tot.
+  private int speed = 200; // Iteration speed in ms (gui)
+  private int allRunsMade = 0; // Full running total
   private boolean guiMode = false;
   private boolean verboseMode = false; // Print debug
   private boolean statsMode = false; // No printing
   boolean latexMode = false; // Print results to LaTeX format (defaults to HTML table otherwise)
+  public LinkedList<ResultRow> tournamentResults;
 
-  public MVSPT(boolean guiMode, boolean verboseMode, boolean statsMode, String statsFilePath) {
+  public MVSPT(boolean guiMode, boolean verboseMode, boolean statsMode, boolean latexMode, String statsFilePath) {
     this.guiMode = guiMode;
     this.verboseMode = verboseMode;
     this.statsMode = statsMode;
+    this.latexMode = latexMode;
     initialise();
     if (guiMode) {
       startGUI();
@@ -58,6 +61,25 @@ public class MVSPT extends JFrame implements Runnable {
     sc = new StrategyCollection();
     strategies = sc.getStrategies();
     scores = new LinkedList<Score>();
+    tournamentResults = new LinkedList<ResultRow>();
+    initResultRowMatrix(tournamentResults, strategies);
+  }
+
+  void initResultRowMatrix(LinkedList<ResultRow> resultRowMatrix, List<Class<? extends Strategy>> strategyList) {
+    for (Class<? extends Strategy> s : strategyList) {
+      Strategy strategy = null;
+      try {
+        strategy = (Strategy) s.newInstance();
+      } catch (InstantiationException e) {
+        e.printStackTrace();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      }
+      ResultRow resultRow = new ResultRow();
+      resultRow.name = strategy.name();
+      resultRow.author = strategy.author();
+      resultRowMatrix.add(resultRow);
+    }
   }
 
   /**
@@ -85,12 +107,24 @@ public class MVSPT extends JFrame implements Runnable {
         while (si.runsMade < GameSettings.N) {
           try {
             strategy.play();
+            for (ResultRow r : tournamentResults) {
+              if (r.name.equals(strategy.name())) {
+                r.aggregateLambda += strategy.getPublicLambda();
+                r.lambdaCounter++;
+              }
+            }
           } catch (StrategyException e1) {
             e1.printStackTrace();
             stop(true); // Forced stop
           }
           try {
             opponent.play();
+            for (ResultRow r : tournamentResults) {
+              if (r.name.equals(opponent.name())) {
+                r.aggregateLambda += opponent.getPublicLambda();
+                r.lambdaCounter++;
+              }
+            }
           } catch (StrategyException e1) {
             e1.printStackTrace();
             stop(true); // Forced stop
@@ -131,14 +165,14 @@ public class MVSPT extends JFrame implements Runnable {
     }
   }
 
-  public String runTournament() {
+  public LinkedList<ResultRow> runTournament() {
     tournament();
-    String data = printSummary();
+    LinkedList<ResultRow> data = printSummary();
     allRunsMade = 0;
     return data;
   }
 
-  private String printSummary() {
+  private LinkedList<ResultRow> printSummary() {
     addOutput(allRunsMade + " runs made, with each round consisting of " + scores.get(0).runsMade + " games.");
     DecimalFormat df = new DecimalFormat("0.000");
     List<Score> readScores = new LinkedList<Score>();
@@ -235,13 +269,26 @@ public class MVSPT extends JFrame implements Runnable {
     // Raw scores
     addOutput("=== Winners: ===");
     // Material name and score, social name and score, overall name and score, in that order
-    String winners = bestMaterialStr + "\t" + df.format(maxMaterialScore) + "\t"
-        + bestSocialStr + "\t" + df.format(maxSocialScore) + "\t"
-        + bestOverallStr + "\t" + df.format(maxOverallScore);
+    String winners = bestMaterialStr + "\t" + df.format(maxMaterialScore) + "\t" + bestSocialStr + "\t"
+        + df.format(maxSocialScore) + "\t" + bestOverallStr + "\t" + df.format(maxOverallScore);
     addOutput(winners);
-    
+
     if (statsMode) {
-      return winners + "\n";
+      for (ResultRow r : tournamentResults) {
+        for (Score s : uniqueScores) {
+          if (s.name.equals(r.name)) {
+            r.latestLambda = s.lambda;
+            //r.aggregateLambda += s.lambda;
+            r.aggregateMaterial += s.materialScore;
+            r.aggregateSocial += s.socialScore;
+            r.aggregateOverall += StrategyCollection.overallScore(s);
+            r.counter++;
+          }
+        }
+      }
+
+      return tournamentResults;
+      //return winners + "\n";
     }
 
     return null;

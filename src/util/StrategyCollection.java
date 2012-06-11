@@ -36,6 +36,7 @@ public class StrategyCollection {
   List<Class<? extends Strategy>> strategies;
 
   public StrategyCollection() {
+    // Note: all strategy names must be unique (both classes and string representations)
     strategies = new LinkedList<Class<? extends Strategy>>();
     strategies.add(ABitNicer.class);
     strategies.add(ABitRandom.class);
@@ -57,7 +58,8 @@ public class StrategyCollection {
     strategies.add(RafalStrategy.class);
     strategies.add(RandomTitForTat.class);
     strategies.add(RLQTableI.class);
-    // strategies.add(RLQTableII.class); // Seems to be the same
+    // strategies.add(RLQTableIPlus.class);
+    // strategies.add(RLQTableII.class); // Is the same as I
     strategies.add(SocialTitForTat.class);
     // 
     // strategies.add(TestStrategy.class);
