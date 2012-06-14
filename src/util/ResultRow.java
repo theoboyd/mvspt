@@ -27,7 +27,7 @@ public class ResultRow {
 
   @Override
   public String toString() {
-    return toString(false);
+    return toString(true);
   }
 
   public String toString(boolean latexMode) {

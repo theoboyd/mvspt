@@ -16,7 +16,7 @@ public class Launcher {
     boolean guiMode = false;
     boolean verboseMode = false;
     boolean statsMode = false;
-    boolean matrixMode = true;
+    boolean matrixMode = false;
     boolean latexMode = true; // Print results to LaTeX format (defaults to HTML table otherwise)
     boolean optimalTesterMode = false; // Run through all possibilities to find an optimal set of values for RL
 
@@ -60,7 +60,6 @@ public class Launcher {
         ByteBuffer bbuf = null;
         String dataString = "";
         
-
         for (double gamma = 0.0; gamma <= 1.0; gamma += 0.2) {
           // For each possible global social coefficient...
           File file = new File(String.valueOf(gamma) + "-" + statsFilePath);
@@ -121,6 +120,7 @@ public class Launcher {
           wChannel.close();
         }
       } else if (matrixMode) {
+        // Don't write to file in this mode
         for (int i = 0; i < statsSample; i++) {
           dataMatrix = updateMatrix((LinkedList<ResultRow>) mvspt.runTournament().getFirst(), dataMatrix);
           if ((i + 2) % 10 == 1) {
@@ -143,7 +143,8 @@ public class Launcher {
         // Writable file channel
         FileChannel wChannel = new FileOutputStream(file, true).getChannel();
         for (int i = 0; i < statsSample; i++) {
-          dataString = mvspt.runTournament().toString();
+          LinkedList<Object> data = mvspt.runTournament();
+          dataString = data.getFirst().toString() + "\n" + data.getLast().toString();
           bbuf = ByteBuffer.wrap(dataString.getBytes());
           wChannel.write(bbuf);
           if ((i + 2) % 10 == 1) {
