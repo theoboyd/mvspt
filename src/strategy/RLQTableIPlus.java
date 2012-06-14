@@ -18,15 +18,15 @@ public class RLQTableIPlus extends Strategy {
   private double ExplorePercentage;
   private static int Counter;
   private static double LastLambda;
-  private static double CoopRatio = 0.0; // 0.3
-  private static double learningRate = 0.1; // 0.1
-  private static double discountFactor = 0.9; // 0.9
-  private static double dcLambda = 3; // 5
-  private static double ccLambdaB = 2; // 2.5
-  private static double ccLambdaA = 2; // 3
-  private static double ddLambda = 10; // 1
-  private static double cdLambda = 3; // 2.5
-  private double gamma = 0;
+  private static double CoopRatio = GameSettings.RL_coopRatio;
+  private static double learningRate = GameSettings.RL_learningRate;
+  private static double discountFactor = GameSettings.RL_discountFactor;
+  private static double ccLambdaA = GameSettings.RL_ccLambdaA;
+  private static double ccLambdaB = GameSettings.RL_ccLambdaB;
+  private static double cdLambda = GameSettings.RL_cdLambda;
+  private static double dcLambda = GameSettings.RL_dcLambda;
+  private static double ddLambda = GameSettings.RL_ddLambda;
+  private static double gamma = GameSettings.GAMMA;
 
   public RLQTableIPlus() {
     super();
@@ -35,13 +35,6 @@ public class RLQTableIPlus extends Strategy {
     Counter = 0;
     ExplorePercentage = 0;
     LastLambda = CoopRatio;
-    
-    // Set optimal constants
-    gamma = GameSettings.GAMMA;
-    ccLambdaA = gamma;
-    learningRate = 0.5;
-    discountFactor = 1 - learningRate;
-    System.out.println("gamma: " + gamma + ", learningRate: " + learningRate + ", discountFactor: " + discountFactor + ".");
   }
 
   @Override

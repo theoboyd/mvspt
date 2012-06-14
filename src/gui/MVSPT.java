@@ -165,14 +165,14 @@ public class MVSPT extends JFrame implements Runnable {
     }
   }
 
-  public LinkedList<ResultRow> runTournament() {
+  public LinkedList<Object> runTournament() {
     tournament();
-    LinkedList<ResultRow> data = printSummary();
+    LinkedList<Object> data = printSummary();
     allRunsMade = 0;
     return data;
   }
 
-  private LinkedList<ResultRow> printSummary() {
+  private LinkedList<Object> printSummary() {
     addOutput(allRunsMade + " runs made, with each round consisting of " + scores.get(0).runsMade + " games.");
     DecimalFormat df = new DecimalFormat("0.000");
     List<Score> readScores = new LinkedList<Score>();
@@ -286,9 +286,10 @@ public class MVSPT extends JFrame implements Runnable {
           }
         }
       }
-
-      return tournamentResults;
-      //return winners + "\n";
+      LinkedList<Object> output = new LinkedList<Object>();
+      output.add(0, tournamentResults);
+      output.add(1, winners);
+      return output;
     }
 
     return null;
