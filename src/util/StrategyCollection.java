@@ -23,6 +23,7 @@ import strategy.NegativePeople;
 import strategy.NonsensePeople;
 import strategy.PositivePeople;
 import strategy.RLQTableI;
+import strategy.RLQTableIPlus;
 import strategy.RafalStrategy;
 import strategy.RandomTitForTat;
 import strategy.SocialTitForTat;
@@ -58,7 +59,7 @@ public class StrategyCollection {
     strategies.add(RafalStrategy.class);
     strategies.add(RandomTitForTat.class);
     strategies.add(RLQTableI.class);
-    // strategies.add(RLQTableIPlus.class);
+    strategies.add(RLQTableIPlus.class);
     // strategies.add(RLQTableII.class); // Is the same as I
     strategies.add(SocialTitForTat.class);
     // 

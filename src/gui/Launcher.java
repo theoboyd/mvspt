@@ -144,7 +144,7 @@ public class Launcher {
         FileChannel wChannel = new FileOutputStream(file, true).getChannel();
         for (int i = 0; i < statsSample; i++) {
           LinkedList<Object> data = mvspt.runTournament();
-          dataString = data.getFirst().toString() + "\n" + data.getLast().toString();
+          dataString = data.getFirst() + "\n" + data.getLast();
           bbuf = ByteBuffer.wrap(dataString.getBytes());
           wChannel.write(bbuf);
           if ((i + 2) % 10 == 1) {

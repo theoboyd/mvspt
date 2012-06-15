@@ -30,6 +30,70 @@ public class RLQTableIPlus extends Strategy {
 
   public RLQTableIPlus() {
     super();
+    int gammaSwitch = (int) (gamma * 10);
+    switch (gammaSwitch) {
+      case 0:
+        CoopRatio = 0.0;
+        learningRate = 0.0;
+        discountFactor = 0.0;
+        ccLambdaA = 0.0;
+        ccLambdaB = 4.0;
+        cdLambda = 4.0;
+        dcLambda = 10.0;
+        ddLambda = 10.0;
+        break;
+      case 2:
+        CoopRatio = 0.0;
+        learningRate = 0.5;
+        discountFactor = 0.0;
+        ccLambdaA = 4.0;
+        ccLambdaB = 0.0;
+        cdLambda = 0.0;
+        dcLambda = 10.0;
+        ddLambda = 10.0;
+        break;
+      case 4:
+        CoopRatio = 0.5;
+        learningRate = 1.0;
+        discountFactor = 0.5;
+        ccLambdaA = 10.0;
+        ccLambdaB = 4.0;
+        cdLambda = 0.0;
+        dcLambda = 0.0;
+        ddLambda = 10.0;
+        break;
+      case 6:
+        CoopRatio = 0.5;
+        learningRate = 0.5;
+        discountFactor = 0.5;
+        ccLambdaA = 2.0;
+        ccLambdaB = 2.0;
+        cdLambda = 4.0;
+        dcLambda = 0.0;
+        ddLambda = 0.0;
+        break;
+      case 8:
+        CoopRatio = 1.0;
+        learningRate = 1.0;
+        discountFactor = 1.0;
+        ccLambdaA = 10.0;
+        ccLambdaB = 4.0;
+        cdLambda = 10.0;
+        dcLambda = 0.0;
+        ddLambda = 0.0;
+      case 10:
+        CoopRatio = 1.0;
+        learningRate = 1.0;
+        discountFactor = 0.0;
+        ccLambdaA = 10.0;
+        ccLambdaB = 8.0;
+        cdLambda = 0.0;
+        dcLambda = 0.0;
+        ddLambda = 4.0;
+        break;
+      default:
+        break;
+    }
     lambda = new Lambda(CoopRatio);
     initialQ();
     Counter = 0;
